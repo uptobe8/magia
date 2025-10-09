@@ -69,6 +69,11 @@ pose_file = os.path.join(POSES_DIR, f"{args.tecnica}.json")
 output_file = os.path.join(OUTPUT_DIR, f"{args.tecnica}.mp4")
 meta_file = os.path.join(OUTPUT_DIR, f"{args.tecnica}.json")
 
+# ✅ Crear carpetas si no existen
+os.makedirs(POSES_DIR, exist_ok=True)
+os.makedirs(MANOS_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 # ✅ Ejecutar chequeos
 extraer_imagen_si_falta()
 validar_entradas(args.tecnica, pose_file)
@@ -88,7 +93,7 @@ cmd = [
 ]
 
 print("🔧 Ejecutando comando:", " ".join(cmd))
-subprocess.run(cmd, check=True)
+result = subprocess.run(cmd, check=True)
 
 # ✅ Guardar metadatos
 metadata = {
@@ -98,11 +103,13 @@ metadata = {
     "duracion": args.duracion,
     "fps": args.fps,
     "resolucion": args.resolucion,
-    "modelo": "AnimateDiff",
-    "timestamp": datetime.datetime.now().isoformat()
+    "modelo": "AnimateDiff + Multi-ControlNet + IP-Adapter",
+    "timestamp": datetime.datetime.now().isoformat(),
+    "video_url": f"https://github.com/uptobe8/magia/actions/runs/{{run_id}}/artifacts/{args.tecnica}.mp4"
 }
 with open(meta_file, "w") as f:
     json.dump(metadata, f, indent=4)
 
 print("✅ Video generado en:", output_file)
 print("📝 Metadatos guardados en:", meta_file)
+print("🔗 URL para usar en GPT:", metadata["video_url"])
