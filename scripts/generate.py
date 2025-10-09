@@ -1,115 +1,79 @@
+
 import os
 import argparse
-import subprocess
-import datetime
-import cv2
 import json
-import sys
+import subprocess
+from datetime import datetime
 
-# ✅ Rutas base
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__) + "/..")
-POSES_DIR = os.path.join(ROOT_DIR, "poses")
-MANOS_DIR = os.path.join(ROOT_DIR, "manos")
-OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
-SCRIPT_INFER = os.path.join(ROOT_DIR, "scripts", "infer_with_pose.py")
+def log(msg):
+    print(f"[generate.py] {msg}")
 
-# ✅ Nombres de archivo
-VIDEO_BASE = os.path.join(MANOS_DIR, "video_base.mp4")
-REF_IMAGE = os.path.join(MANOS_DIR, "mano_ref.png")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tecnica", type=str, required=True, help="Nombre exacto de la técnica")
+    parser.add_argument("--prompt", type=str, required=True, help="Descripción textual de la técnica")
+    parser.add_argument("--duracion", type=int, required=True, help="Duración del video en segundos")
+    parser.add_argument("--fps", type=int, required=True, help="Frames por segundo")
+    parser.add_argument("--seed", type=int, default=42, help="Seed para generación determinista")
+    parser.add_argument("--resolucion", type=str, required=True, help="Resolución en formato '512x512'")
+    args = parser.parse_args()
 
-# ✅ Función: extraer imagen si no existe
-def extraer_imagen_si_falta():
-    if os.path.exists(REF_IMAGE):
-        print("✅ Imagen de referencia ya existe.")
-        return
-    if not os.path.exists(VIDEO_BASE):
-        print("❌ No se encontró el vídeo base:", VIDEO_BASE)
-        sys.exit(1)
+    tecnica_slug = args.tecnica.lower().replace(" ", "_")
+    pose_path = f"poses/{tecnica_slug}.json"
+    mano_ref_path = "manos/mano_ref.png"
+    output_path = f"outputs/{tecnica_slug}.mp4"
+    metadata_path = f"outputs/{tecnica_slug}.json"
 
-    print("🖼️ Extrayendo imagen del vídeo base...")
+    # Validaciones
+    if not os.path.exists(pose_path):
+        raise FileNotFoundError(f"No se encontró el archivo de pose: {pose_path}")
+    if not os.path.exists(mano_ref_path):
+        raise FileNotFoundError(f"No se encontró la imagen de referencia de manos: {mano_ref_path}")
 
-    cap = cv2.VideoCapture(VIDEO_BASE)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    frame_index = total_frames // 2
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-    ret, frame = cap.read()
-    if not ret:
-        print("❌ No se pudo leer un frame válido.")
-        sys.exit(1)
-    cv2.imwrite(REF_IMAGE, frame)
-    cap.release()
-    print("✅ Imagen guardada como:", REF_IMAGE)
+    log(f"Iniciando generación para la técnica: {args.tecnica}")
 
-# ✅ Validar entradas necesarias
-def validar_entradas(tecnica, pose_path):
-    errores = []
+    # Ejecutar el modelo AnimateDiff con pose control
+    command = [
+        "python", "scripts/infer_with_pose.py",
+        "--prompt", args.prompt,
+        "--pose_json", pose_path,
+        "--ref_image", mano_ref_path,
+        "--out", output_path,
+        "--duration", str(args.duracion),
+        "--fps", str(args.fps),
+        "--resolution", args.resolucion,
+        "--seed", str(args.seed)
+    ]
 
-    if not os.path.isfile(pose_path):
-        errores.append(f"❌ Pose no encontrada: {pose_path}")
-    if not os.path.isfile(SCRIPT_INFER):
-        errores.append(f"❌ Script de inferencia no existe: {SCRIPT_INFER}")
+    log("Ejecutando comando:")
+    log(" ".join(command))
 
-    if errores:
-        for e in errores:
-            print(e)
-        sys.exit(1)
+    result = subprocess.run(command, capture_output=True, text=True)
 
-# ✅ Leer argumentos desde Action
-parser = argparse.ArgumentParser(description="Generar video de técnica de cartomagia")
-parser.add_argument("--tecnica", type=str, required=True)
-parser.add_argument("--prompt", type=str, required=True)
-parser.add_argument("--duracion", type=int, required=True)
-parser.add_argument("--fps", type=int, required=True)
-parser.add_argument("--seed", type=int, default=42)
-parser.add_argument("--resolucion", type=str, default="512x512")
-args = parser.parse_args()
+    if result.returncode != 0:
+        log("Error al generar el video:")
+        log(result.stderr)
+        raise RuntimeError("Falló la generación del video.")
 
-# ✅ Rutas de entrada/salida
-pose_file = os.path.join(POSES_DIR, f"{args.tecnica}.json")
-output_file = os.path.join(OUTPUT_DIR, f"{args.tecnica}.mp4")
-meta_file = os.path.join(OUTPUT_DIR, f"{args.tecnica}.json")
+    # Guardar metadata
+    metadata = {
+        "tecnica": args.tecnica,
+        "prompt": args.prompt,
+        "seed": args.seed,
+        "duracion": args.duracion,
+        "fps": args.fps,
+        "resolucion": args.resolucion,
+        "modelo": "AnimateDiff-v1.1",
+        "output_file": output_path,
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
-# ✅ Crear carpetas si no existen
-os.makedirs(POSES_DIR, exist_ok=True)
-os.makedirs(MANOS_DIR, exist_ok=True)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
 
-# ✅ Ejecutar chequeos
-extraer_imagen_si_falta()
-validar_entradas(args.tecnica, pose_file)
+    log("Video generado correctamente.")
+    log(f"Ruta del video: {output_path}")
+    log(f"Metadata guardada en: {metadata_path}")
 
-# ✅ Ejecutar el modelo
-print(f"🚀 Generando vídeo para técnica: {args.tecnica}")
-cmd = [
-    "python", SCRIPT_INFER,
-    "--prompt", args.prompt,
-    "--pose_json", pose_file,
-    "--ref_image", REF_IMAGE,
-    "--out", output_file,
-    "--duration", str(args.duracion),
-    "--fps", str(args.fps),
-    "--resolution", args.resolucion,
-    "--seed", str(args.seed)
-]
-
-print("🔧 Ejecutando comando:", " ".join(cmd))
-result = subprocess.run(cmd, check=True)
-
-# ✅ Guardar metadatos
-metadata = {
-    "tecnica": args.tecnica,
-    "prompt": args.prompt,
-    "seed": args.seed,
-    "duracion": args.duracion,
-    "fps": args.fps,
-    "resolucion": args.resolucion,
-    "modelo": "AnimateDiff + Multi-ControlNet + IP-Adapter",
-    "timestamp": datetime.datetime.now().isoformat()
-    # ⛔️ NO incluir "video_url" aquí
-}
-
-with open(meta_file, "w") as f:
-    json.dump(metadata, f, indent=4)
-
-print("✅ Video generado en:", output_file)
-print("📝 Metadatos guardados en:", meta_file)
+if __name__ == "__main__":
+    main()
