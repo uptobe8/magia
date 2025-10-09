@@ -30,29 +30,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clonar repositorio
-      uses: actions/checkout@v3
+      - name: Clonar repositorio
+        uses: actions/checkout@v3
 
-    - name: Configurar Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Instalar dependencias
-      run: pip install -r requirements.txt
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Ejecutar generación de video
-      run: |
-        python scripts/generate.py \
-          --tecnica "${{ github.event.inputs.tecnica }}" \
-          --prompt "${{ github.event.inputs.prompt }}" \
-          --duracion "${{ github.event.inputs.duracion }}" \
-          --fps "${{ github.event.inputs.fps }}" \
-          --resolucion "${{ github.event.inputs.resolucion }}" \
-          --seed "${{ github.event.inputs.seed }}"
+      - name: Ejecutar generación de video
+        run: |
+          python scripts/generate.py \
+            --tecnica "${{ inputs.tecnica }}" \
+            --prompt "${{ inputs.prompt }}" \
+            --duracion "${{ inputs.duracion }}" \
+            --fps "${{ inputs.fps }}" \
+            --resolucion "${{ inputs.resolucion }}" \
+            ${{ inputs.seed && format('--seed "{0}"', inputs.seed) || '' }}
 
-    - name: Subir artefacto de video
-      uses: actions/upload-artifact@v4
-      with:
-        name: video
-        path: outputs/${{ github.event.inputs.tecnica }}.mp4
+      - name: Subir artefacto de video
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ inputs.tecnica }}
+          path: outputs/${{ inputs.tecnica }}.mp4
