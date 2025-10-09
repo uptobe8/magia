@@ -105,7 +105,7 @@ metadata = {
     "resolucion": args.resolucion,
     "modelo": "AnimateDiff + Multi-ControlNet + IP-Adapter",
     "timestamp": datetime.datetime.now().isoformat(),
-    "video_url": f"https://github.com/uptobe8/magia/actions/runs/{{run_id}}/artifacts/{args.tecnica}.mp4"
+    "video_url": f"https://nightly.link/uptobe8/magia/actions/artifacts/video.zip"
 }
 with open(meta_file, "w") as f:
     json.dump(metadata, f, indent=4)
