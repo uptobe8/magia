@@ -1,0 +1,58 @@
+name: Generar video de técnica mágica
+
+on:
+  workflow_dispatch:
+    inputs:
+      tecnica:
+        description: 'Nombre exacto de la técnica'
+        required: true
+      prompt:
+        description: 'Texto completo extraído del manual'
+        required: true
+      duracion:
+        description: 'Duración del video (segundos)'
+        required: true
+        default: 4
+      fps:
+        description: 'Frames por segundo'
+        required: true
+        default: 12
+      resolucion:
+        description: 'Resolución (ej: 512x512)'
+        required: true
+        default: 512x512
+      seed:
+        description: 'Semilla aleatoria'
+        required: false
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar repositorio
+      uses: actions/checkout@v3
+
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar dependencias
+      run: pip install -r requirements.txt
+
+    - name: Ejecutar generación de video
+      run: |
+        python scripts/generate.py \
+          --tecnica "${{ github.event.inputs.tecnica }}" \
+          --prompt "${{ github.event.inputs.prompt }}" \
+          --duracion "${{ github.event.inputs.duracion }}" \
+          --fps "${{ github.event.inputs.fps }}" \
+          --resolucion "${{ github.event.inputs.resolucion }}" \
+          --seed "${{ github.event.inputs.seed }}"
+
+    - name: Subir artefacto de video
+      uses: actions/upload-artifact@v4
+      with:
+        name: video
+        path: outputs/${{ github.event.inputs.tecnica }}.mp4
