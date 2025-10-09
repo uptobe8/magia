@@ -3,6 +3,8 @@ import argparse
 import subprocess
 import datetime
 import cv2
+import json
+import sys
 
 # ✅ Rutas base
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__) + "/..")
@@ -22,7 +24,7 @@ def extraer_imagen_si_falta():
         return
     if not os.path.exists(VIDEO_BASE):
         print("❌ No se encontró el vídeo base:", VIDEO_BASE)
-        exit(1)
+        sys.exit(1)
 
     print("🖼️ Extrayendo imagen del vídeo base...")
 
@@ -33,7 +35,7 @@ def extraer_imagen_si_falta():
     ret, frame = cap.read()
     if not ret:
         print("❌ No se pudo leer un frame válido.")
-        exit(1)
+        sys.exit(1)
     cv2.imwrite(REF_IMAGE, frame)
     cap.release()
     print("✅ Imagen guardada como:", REF_IMAGE)
@@ -50,11 +52,12 @@ def validar_entradas(tecnica, pose_path):
     if errores:
         for e in errores:
             print(e)
-        exit(1)
+        sys.exit(1)
 
 # ✅ Leer argumentos desde Action
 parser = argparse.ArgumentParser(description="Generar video de técnica de cartomagia")
 parser.add_argument("--tecnica", type=str, required=True)
+parser.add_argument("--prompt", type=str, required=True)
 parser.add_argument("--duracion", type=int, required=True)
 parser.add_argument("--fps", type=int, required=True)
 parser.add_argument("--seed", type=int, default=42)
@@ -74,7 +77,7 @@ validar_entradas(args.tecnica, pose_file)
 print(f"🚀 Generando vídeo para técnica: {args.tecnica}")
 cmd = [
     "python", SCRIPT_INFER,
-    "--prompt", f"Técnica de cartomagia: {args.tecnica}",
+    "--prompt", args.prompt,
     "--pose_json", pose_file,
     "--ref_image", REF_IMAGE,
     "--out", output_file,
@@ -90,6 +93,7 @@ subprocess.run(cmd, check=True)
 # ✅ Guardar metadatos
 metadata = {
     "tecnica": args.tecnica,
+    "prompt": args.prompt,
     "seed": args.seed,
     "duracion": args.duracion,
     "fps": args.fps,
@@ -98,7 +102,6 @@ metadata = {
     "timestamp": datetime.datetime.now().isoformat()
 }
 with open(meta_file, "w") as f:
-    import json
     json.dump(metadata, f, indent=4)
 
 print("✅ Video generado en:", output_file)
