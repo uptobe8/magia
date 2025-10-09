@@ -104,12 +104,12 @@ metadata = {
     "fps": args.fps,
     "resolucion": args.resolucion,
     "modelo": "AnimateDiff + Multi-ControlNet + IP-Adapter",
-    "timestamp": datetime.datetime.now().isoformat(),
-    "video_url": f"https://nightly.link/uptobe8/magia/actions/artifacts/video.zip"
+    "timestamp": datetime.datetime.now().isoformat()
+    # ⛔️ NO incluir "video_url" aquí
 }
+
 with open(meta_file, "w") as f:
     json.dump(metadata, f, indent=4)
 
 print("✅ Video generado en:", output_file)
 print("📝 Metadatos guardados en:", meta_file)
-print("🔗 URL para usar en GPT:", metadata["video_url"])
