@@ -45,6 +45,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Configurar variable de entorno del token
+      run: echo "GITHUB_TOKEN=${{ secrets.MAGICUPTOBE }}" >> $GITHUB_ENV
+
     - name: Ejecutar generación de video
       run: |
         python magia/scripts/generate.py \
