@@ -1,6 +1,8 @@
 name: Generar video de técnica mágica
 
 on:
+  repository_dispatch:
+    types: [generar_video]
   workflow_dispatch:
     inputs:
       tecnica:
