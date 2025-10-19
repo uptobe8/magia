@@ -65,4 +65,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: video
-        path: magia/outputs/${{ github.event.inputs.tecnica }}.mp4
+        path: outputs/${{ github.event.inputs.tecnica }}.mp4
+      working-directory: magia
