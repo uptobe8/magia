@@ -41,24 +41,11 @@ def extraer_imagen_si_falta():
     print("✅ Imagen guardada como:", REF_IMAGE)
 
 # ✅ Validar entradas necesarias
-def generar_pose_vacia_si_falta(pose_path):
-    if not os.path.isfile(pose_path):
-        print(f"⚠️ Pose no encontrada: {pose_path}")
-        print("🛠️ Generando archivo de pose vacío por defecto...")
-        pose_vacia = [
-            {
-                "keypoints": [],
-                "frame": 0
-            }
-        ]
-        with open(pose_path, "w") as f:
-            json.dump(pose_vacia, f)
-        print(f"✅ Pose vacía generada: {pose_path}")
-
 def validar_entradas(tecnica, pose_path):
     errores = []
 
-    generar_pose_vacia_si_falta(pose_path)
+    if not os.path.isfile(pose_path):
+        errores.append(f"❌ Pose no encontrada: {pose_path}")
     if not os.path.isfile(SCRIPT_INFER):
         errores.append(f"❌ Script de inferencia no existe: {SCRIPT_INFER}")
 
