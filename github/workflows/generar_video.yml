@@ -50,7 +50,7 @@ jobs:
 
     - name: Ejecutar generación de video
       run: |
-        python magia/scripts/generate.py \
+        python scripts/generate.py \
           --tecnica "${{ github.event.inputs.tecnica }}" \
           --prompt "${{ github.event.inputs.prompt }}" \
           --duracion "${{ github.event.inputs.duracion }}" \
