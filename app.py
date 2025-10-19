@@ -6,6 +6,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+BASE_URL = "https://github.com/uptobe8/magia"
+
 @app.route('/api/video/generar', methods=['POST'])
 def generar_video():
     try:
@@ -27,7 +29,6 @@ def generar_video():
 
         os.makedirs(output_dir, exist_ok=True)
 
-        # Ejecutar generate.py con los parámetros esperados
         subprocess.run([
             "python", "scripts/generate.py",
             "--tecnica", tecnica,
@@ -53,12 +54,11 @@ def generar_video():
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
 
-        # Guardar metadata localmente (opcional)
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
         return jsonify({
-            "video_url": f"https://tu-servidor.com/magia/outputs/{tecnica}.mp4",
+            "video_url": f"{BASE_URL}/outputs/{tecnica}.mp4",
             "metadata": metadata
         })
 
