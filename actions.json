@@ -1,6 +1,6 @@
 {
   "namespace": "github_com__jit_plugin",
-  "api_url": "https://api.github.com/repos/uptobe8/magia/dispatches",
+  "api_url": "https://api.github.com/repos/uptobe8/magia/actions/workflows/generar_video.yml/dispatches",
   "auth": {
     "type": "bearer",
     "key": "${{ secrets.MAGICUPTOBE }}"
