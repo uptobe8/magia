@@ -40,12 +40,31 @@ def extraer_imagen_si_falta():
     cap.release()
     print("✅ Imagen guardada como:", REF_IMAGE)
 
+# ✅ Generar pose JSON si no existe
+def generar_pose_json_si_falta(pose_path):
+    if os.path.exists(pose_path):
+        print("✅ Pose ya existe:", pose_path)
+        return
+
+    print("🖌️ Generando pose automática básica...")
+    # Pose de ejemplo con keyframes vacíos o mínimos
+    pose_data = {
+        "version": 1,
+        "keyframes": [
+            {
+                "frame": 0,
+                "pose": "default"
+            }
+        ]
+    }
+    with open(pose_path, "w") as f:
+        json.dump(pose_data, f, indent=4)
+    print("✅ Pose generada en:", pose_path)
+
 # ✅ Validar entradas necesarias
 def validar_entradas(tecnica, pose_path):
     errores = []
 
-    if not os.path.isfile(pose_path):
-        errores.append(f"❌ Pose no encontrada: {pose_path}")
     if not os.path.isfile(SCRIPT_INFER):
         errores.append(f"❌ Script de inferencia no existe: {SCRIPT_INFER}")
 
@@ -76,6 +95,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ✅ Ejecutar chequeos
 extraer_imagen_si_falta()
+generar_pose_json_si_falta(pose_file)
 validar_entradas(args.tecnica, pose_file)
 
 # ✅ Ejecutar el modelo
@@ -105,7 +125,6 @@ metadata = {
     "resolucion": args.resolucion,
     "modelo": "AnimateDiff + Multi-ControlNet + IP-Adapter",
     "timestamp": datetime.datetime.now().isoformat()
-    # ⛔️ NO incluir "video_url" aquí
 }
 
 with open(meta_file, "w") as f:
