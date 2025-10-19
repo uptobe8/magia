@@ -30,7 +30,6 @@ on:
 jobs:
   generar:
     runs-on: ubuntu-latest
-
     steps:
     - name: Clonar repositorio
       uses: actions/checkout@v3
@@ -44,15 +43,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-      working-directory: magia
 
     - name: Configurar variable de entorno del token
       run: echo "GITHUB_TOKEN=${{ secrets.MAGICUPTOBE }}" >> $GITHUB_ENV
-      working-directory: magia
 
     - name: Ejecutar generación de video
       run: |
-        cd magia
         python scripts/generate.py \
           --tecnica "${{ github.event.inputs.tecnica }}" \
           --prompt "${{ github.event.inputs.prompt }}" \
@@ -66,4 +62,3 @@ jobs:
       with:
         name: video
         path: outputs/${{ github.event.inputs.tecnica }}.mp4
-      working-directory: magia
