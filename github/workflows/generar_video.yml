@@ -44,11 +44,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+      working-directory: magia
 
     - name: Configurar variable de entorno del token
       run: echo "GITHUB_TOKEN=${{ secrets.MAGICUPTOBE }}" >> $GITHUB_ENV
+      working-directory: magia
 
     - name: Ejecutar generación de video
+      working-directory: magia
       run: |
         python scripts/generate.py \
           --tecnica "${{ github.event.inputs.tecnica }}" \
