@@ -51,8 +51,8 @@ jobs:
       working-directory: magia
 
     - name: Ejecutar generación de video
-      working-directory: magia
       run: |
+        cd magia
         python scripts/generate.py \
           --tecnica "${{ github.event.inputs.tecnica }}" \
           --prompt "${{ github.event.inputs.prompt }}" \
