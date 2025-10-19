@@ -48,14 +48,14 @@ jobs:
       run: echo "GITHUB_TOKEN=${{ secrets.MAGICUPTOBE }}" >> $GITHUB_ENV
 
     - name: Ejecutar generación de video
-      run: |
-        python scripts/generate.py \
-          --tecnica "${{ github.event.inputs.tecnica }}" \
-          --prompt "${{ github.event.inputs.prompt }}" \
-          --duracion "${{ github.event.inputs.duracion }}" \
-          --fps "${{ github.event.inputs.fps }}" \
-          --resolucion "${{ github.event.inputs.resolucion }}" \
-          ${{ github.event.inputs.seed && format('--seed {0}', github.event.inputs.seed) || '' }}
+  run: |
+    python scripts/generate.py \
+      --tecnica "${{ github.event.inputs.tecnica }}" \
+      --prompt "${{ github.event.inputs.prompt }}" \
+      --duracion "${{ github.event.inputs.duracion }}" \
+      --fps "${{ github.event.inputs.fps }}" \
+      --resolucion "${{ github.event.inputs.resolucion }}" \
+      ${{ github.event.inputs.seed && format('--seed {0}', github.event.inputs.seed) || '' }}
 
     - name: Subir artefacto de video
       uses: actions/upload-artifact@v4
