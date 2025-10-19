@@ -3,6 +3,6 @@
   "api_url": "https://api.github.com/repos/uptobe8/magia/actions/workflows/generar_video.yml/dispatches",
   "auth": {
     "type": "bearer",
-    "key": "<TU_TOKEN_DE_GITHUB>"
+    "key": "<MAGICUPTOBE>"
   }
 }
