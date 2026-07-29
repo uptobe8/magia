@@ -1,0 +1,52 @@
+name: Generar video web
+
+on:
+  push:
+    paths:
+      - 'requests/**/*.json'
+      - 'requests/*.json'
+  workflow_dispatch:
+    inputs:
+      request_json:
+        description: 'Solicitud JSON completa de video'
+        required: true
+        type: string
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Crear solicitud manual si aplica
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          mkdir -p requests
+          cat > "requests/manual-${{ github.run_id }}.json" <<'JSON'
+          ${{ github.event.inputs.request_json }}
+          JSON
+
+      - name: Procesar solicitud
+        env:
+          VIDEO_API_ENDPOINT: ${{ secrets.VIDEO_API_ENDPOINT }}
+          VIDEO_API_TOKEN: ${{ secrets.VIDEO_API_TOKEN }}
+        run: |
+          python scripts/process_video_request.py
+
+      - name: Subir salida real o diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-output
+          path: outputs/
+          if-no-files-found: warn
